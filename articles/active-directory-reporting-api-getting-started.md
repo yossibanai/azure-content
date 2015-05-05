@@ -43,7 +43,7 @@ In order to authenticate to the Reporting API, we must use the OAuth flow, which
 - Navigate to the [Azure Management Portal](https://manage.windowsazure.com/)
 - Navigate into your directory
 - Navigate into applications
-- On the bottom bar, click "Add application".
+- On the bottom bar, click "Add".
 	- Click "Add an application my organization is developing".
 	- **Name**: Any name is fine. Something like "Reporting API Application" is recommended.
 	- **Type**: Select "Native client application."
@@ -51,6 +51,16 @@ In order to authenticate to the Reporting API, we must use the OAuth flow, which
 	- **Redirect URI**: ```http://localhost```
 	- Click the checkmark to finish adding the application.
 
+### Configure the application for Windows Azure Service Management API
+By default, the application has access to Windows Azure Active Directory. To complete the steps below, it will also need to have read access to 
+- Navigate to the **Applications** tab.
+- Navigate to your newly created application.
+- Nevigate to the Configure tab.
+- Scroll down and click the **Add application** button. 
+- Click **Windows Azure Service Management API**.
+- Click the confirmation button.
+- In the **permissions to other applications** list, click **Windows Azure Service Management API** and in the drop down select **Access Azure Service Mangement (preview)**. 
+- Click the **Save** button at the bottom. 
 
 
 ### Get your directory ID, client ID, and OAuth 2.0 endpoints
@@ -62,13 +72,6 @@ Find your application's client ID, your OAuth endpoints, and your directory ID. 
 - Navigate to your newly created application.
 - Navigate to the Configure tab.
 - Your application's client ID is listed on the Client ID field.
-
-#### OAuth endpoints
-- Navigate to the Applications tab.
-- **Select** your newly created application.
-	- Don't navigate into the application! Just select it.
-- Click "View Endpoints" on the bottom bar.
-- Your OAuth Token and Authorization endpoints are at the bottom of the list.
 
 #### Directory ID
 - While signed into the Azure Management Portal, you can find your directory ID in the URL.
@@ -90,10 +93,10 @@ First, you need an authorization code. You can retrieve this by navigating to a 
 
 - Substitute this URL with your Azure AD Directory ID and your Application Client ID.
 	- ```https://login.windows.net/<<INSERT-YOUR-AZURE-AD-DIRECTORY-ID-HERE>>/oauth2/authorize?client_id=<<INSERT-YOUR-APPLICATION-CLIENT-ID-HERE>>&response_type=code```
-- After filling in the fields, open a browser window and navigate to the URL.
+- After filling in the fields, open a browser window and navigate to the URL. Your browser will be redirected to a URL which contains your access code; there won't be any page content. This is OK. 
 - If prompted, sign in as a global administrator in your directory.
 	- If you run into issues, you may need to sign out of the Azure Management Portal or Office Portal and try again.
-- Your browser will be redirected to a URL which contains your access code; there won't be any page content, but the URL will contain your authorization code.
+- Inspect the URL for the redirected page. The URL contains your authorization code.
 	- ```http://localhost/?code=<<YOUR-AUTHORIZATION-CODE>>&session_state=<<YOUR-SESSION-STATE>>``` 
 - Copy ```YOUR-AUTHORIZATION-CODE``` into a separate place; you'll use it in the next step.
 
@@ -103,14 +106,14 @@ First, you need an authorization code. You can retrieve this by navigating to a 
 
 Next, you'll retrieve your access token by making an HTTP request to an OAuth endpoint using your authorization token. For this example, we'll use a small unix library called [curl](http://curl.haxx.se/); you can also use [Postman](https://www.getpostman.com/) or a [PowerShell cmdlet that can make HTTP requests](https://technet.microsoft.com/en-us/library/hh849901.aspx).
 
-- First, replace ```YOUR-AZURE-AD-DIRECTORY-ID``` with the directory ID you retrieved in a previous step. Then, replace ```YOUR-AUTHORIZATION-CODE``` with the authorization code you retrieved in the previous step.
+- First, replace ```YOUR-AZURE-AD-DIRECTORY-ID``` with the directory ID you retrieved in a previous step. Then, replace ```YOUR-CLIENT-ID``` with the client ID you retrieved in the previous step. Finally, replace ```YOUR-AUTHORIZATION-CODE``` with the authorization code you retrieved in the previous step.
 
 ```
 curl -X POST https://login.windows.net/<<INSERT-YOUR-AZURE-AD-DIRECTORY-ID-HERE>>/oauth2/token  \
-  -F redirect_uri=http://localhost \
-  -F grant_type=authorization_code \
-  -F resource=https://management.core.windows.net/ \
-  -F client_id=87a544fd-... \
+  -F redirect_uri=http://localhost
+  -F grant_type=authorization_code 
+  -F resource=https://management.core.windows.net/
+  -F client_id=<<INSERT-YOUR-CLIENT-ID-HERE>>
   -F code=<<INSERT-YOUR-AUTHORIZATION-CODE-HERE>>
 ```
 
@@ -140,8 +143,8 @@ curl -X POST https://login.windows.net/<<INSERT-YOUR-AZURE-AD-DIRECTORY-ID-HERE>
 - Finally, replace ```YOUR-ACCESS-TOKEN``` with your access token in the curl request below.
 
 ```
-curl -v https://graph.windows.net//reports/?api-version=1.5/audit \
-  -H "x-ms-version: 2013-08-01" \
+curl -v https://graph.windows.net//reports/?api-version=1.5/audit
+  -H "x-ms-version: 2013-08-01"
   -H "Authorization: Bearer <<INSERT-YOUR-ACCESS-TOKEN-HERE>>"
 ```
 
